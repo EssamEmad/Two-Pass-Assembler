@@ -15,7 +15,6 @@ class TwoPassAssembler:
         self.INST_TABLE_FILE = INST_TABLE_FILE
         if not self.load_instructions(self.INST_TABLE_FILE):
             raise ValueError("error loading instruction")
-        self.inst_table = {}
         self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW"]
 
     def load_instructions(self, file_path):
