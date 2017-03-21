@@ -13,6 +13,7 @@ class TwoPassAssembler:
         self.symbol_table = {}
         self.start_address = 0 # default if not changed
         self.INST_TABLE_FILE = INST_TABLE_FILE
+        self.inst_table = {}
         if not self.load_instructions(self.INST_TABLE_FILE):
             raise ValueError("error loading instruction")
         self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW"]
@@ -57,7 +58,9 @@ class TwoPassAssembler:
                 self.symbol_table[parts['label']] = current_address
 
             # print line to the file
-            temp_line = "{}\t{}\t{}\t{}".format(current_address, parts['label'], parts['memonic'],
+            temp_line = "{}\t{}\t{}\t{}".format(current_address,
+                                                parts['label'] if parts['label'] else '',
+                                                parts['memonic'],
                                                 str.join(parts['operands'], ","))
             temp_file.write(temp_line)
 
