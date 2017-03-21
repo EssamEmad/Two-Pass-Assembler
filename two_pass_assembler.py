@@ -16,14 +16,7 @@ class TwoPassAssembler:
         if not self.load_instructions(self.INST_TABLE_FILE):
             raise ValueError("error loading instruction")
         self.inst_table = {}
-        self.directive_table = {
-            "START": 'start',
-            "END": 0, # TODO
-            "BYTE": 'byte_size',
-            "WORD": 'word_size',
-            "RESB": 'resb',
-            "RESW": 'resw'
-        }
+        self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW"]
 
     def load_instructions(self, file_path):
         """
@@ -66,7 +59,7 @@ class TwoPassAssembler:
 
             # print line to the file
             temp_line = "{}\t{}\t{}\t{}".format(current_address, parts['label'], parts['memonic'],
-                                                str.join(parts[operands], ","))
+                                                str.join(parts['operands'], ","))
             temp_file.write(temp_line)
 
             current_address += self.get_size(parts['memonic'], parts['operands'])
@@ -105,7 +98,7 @@ class TwoPassAssembler:
                     raise SyntaxError("Insturcations parts must not start with a number")
                 else:
                     current += t
-        parts[operands] = list(re.split(parts['operands'], ','))
+        parts['operands'] = list(re.split(parts['operands'], ','))
         return parts
 
     @staticmethod
@@ -118,10 +111,9 @@ class TwoPassAssembler:
         :return: None
         """
         parts["label" if not current_index else
-                "memonic" if current_index == 1 else
-                "operands" if current_index == 2 else
-                "comment"] = current
-
+              "memonic" if current_index == 1 else
+              "operands" if current_index == 2 else
+              "comment"] = current
 
     def get_size(self, memonic, operands):
         """
@@ -144,25 +136,24 @@ class TwoPassAssembler:
             else:
                 # return size 4 if + which indicates a type 4 instruction
                 return 4 if operands[0] == '+' else 3
-        elif self.directive_table[memonic]:
+        elif memonic in self.directive_table:
             # check if the memonic is a directive
-            # if so get the name of the static method that eval the size of the operand
-            # and return the evaluation of the method
-            return eval("self.{}({})",format(self.directive_table[memonic], operands[0]))
+            # get the method that has the same name of the memonic and pass it the operands
+            return self.__getattribute__(memonic)(operands)
         else:
             # memonic is not an instruction or memonic
             raise SyntaxError("Invalid memonic or directive")
 
-
-    def byte_size(self, operand):
+    @staticmethod
+    def byte(operand):
         """
-        Eval the numer of bytes needed for the operand of the BYTE directive
+        Eval the number of bytes needed for the operand of the BYTE directive
         :param operand: the operand of the 'BYTE' directive
         :return: size of the operand in bytes
 
-        >>> self.byte_size("X'F1'")
+        >>> TwoPassAssembler.byte("X'F1'")
         1
-        >>> self.byte_size("C'EOF'")
+        >>> TwoPassAssembler.byte("C'EOF'")
         3
         """
         if operand[0] == 'C':
@@ -172,56 +163,26 @@ class TwoPassAssembler:
         else:
             raise SyntaxError("Invalid BYTE operand")
 
-
-    def word_size(self, operand):
+    @staticmethod
+    def word(operand):
         """
         Return the number of bytes needed to store the directive operand
 
         :param operand: the operand of the directive
         :return: num of bytes
 
-        >>> self.word_size(4096)
+        >>> TwoPassAssembler.word(4096)
         3
         """
         return 3
 
-
-    def resb(self, operand):
+    @staticmethod
+    def resb(operand):
         return int(operand[0])
 
-
-    def resw(self, operand):
+    @staticmethod
+    def resw(operand):
         return 3*int(operand[0])
 
     def start(self, operands):
         self.start_address = int(operands[0])
-
-
-# if __name__ == '__main__':
-#     """
-#         Testing few functions
-#         not working need to start working with files
-#     """
-#     assert TwoPassAssembler.byte_size("C'EOF'") == 3
-#     assert TwoPassAssembler.byte_size("X'F23'") == 2
-#     operands = ["C'EOF'"]
-#     memonic = "BYTE"
-#     directive_table = {
-#         "START": 0,  # TODO
-#         "END": 0,  # TODO
-#         "BYTE": 'byte_size',
-#         "WORD": 'word_size',
-#         "RESB": 'resb',
-#         "RESW": 'resw'
-#     }
-#
-#     for operands in [["C'EOF'"], ["X'F1'"]]:
-#         exp = "TwoPassAssembler.{}(\"{}\")".format(directive_table[memonic], operands[0])
-#         size = eval(exp)
-#         print(size)
-#
-#     operands = ['3']
-#     for memonic in ["RESB", "RESW"]:
-#         exp = "TwoPassAssembler.{}(\"{}\")".format(directive_table[memonic], operands[0])
-#         size = eval(exp)
-#         print(size)
