@@ -7,7 +7,7 @@ class TwoPassAssembler:
     Two pass assembler simulation
     System Programming Course 2017
     """
-    def __init__(self, FILE, output_path, INST_TABLE_FILE = 'inst.txt'):
+    def __init__(self, FILE, output_path, INST_TABLE_FILE = 'instructions.txt'):
         self.FILE = FILE
         self.output_path = output_path
         self.symbol_table = {}
@@ -29,8 +29,8 @@ class TwoPassAssembler:
             return False
 
         for line in f:
-            parts = re.split(line, ' ')
-            self.inst_table[parts[0]] = [parts[1], parts[2]]
+            parts = re.split(' ',line)
+            self.inst_table[parts[0]] = [list(map(int, re.split(',', parts[1]))), parts[2].strip()]
         f.close()
         return True
 
@@ -100,7 +100,7 @@ class TwoPassAssembler:
                     raise SyntaxError("Insturcations parts must not start with a number")
                 else:
                     current += t
-        parts['operands'] = list(re.split(parts['operands'], ','))
+        parts['operands'] = list(re.split(',', parts['operands']))
         return parts
 
     @staticmethod
@@ -188,3 +188,8 @@ class TwoPassAssembler:
 
     def start(self, operands):
         self.start_address = int(operands[0])
+        return 0
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
