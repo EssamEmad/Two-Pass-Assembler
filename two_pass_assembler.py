@@ -58,15 +58,16 @@ class TwoPassAssembler:
                 self.symbol_table[parts['label']] = current_address
 
             # print line to the file
-            temp_line = "{}\t{}\t{}\t{}".format(current_address,
+            temp_line = "{} {} {} {}\n".format(current_address,
                                                 parts['label'] if parts['label'] else '',
                                                 parts['memonic'],
-                                                str.join(parts['operands'], ","))
+                                                str.join(',', parts['operands']))
             temp_file.write(temp_line)
 
             current_address += self.get_size(parts['memonic'], parts['operands'])
 
         f.close()
+        temp_file.close()
 
 
     @staticmethod
@@ -88,19 +89,27 @@ class TwoPassAssembler:
         current_index = 0
         current = ""
         parts = {}
+
         for t in line:
-            if t == '/t':
+            if t == '\t' or t.isspace():
                 # save the part collected in the parts hash
                 TwoPassAssembler.save_value(current_index, current, parts)
                 current_index += 1
+                current = ""
             elif t.isalpha():
                 current += t
             else:
-                if len(current) == 0 and current_index != 1:
+                if len(current) == 0 and current_index != 2:
                     raise SyntaxError("Insturcations parts must not start with a number")
                 else:
                     current += t
-        parts['operands'] = list(re.split(',', parts['operands']))
+
+        if current != "":
+            TwoPassAssembler.save_value(current_index, current, parts)
+
+        if parts['operands']:
+            parts['operands'] = list(re.split(',', parts['operands']))
+
         return parts
 
     @staticmethod
@@ -131,7 +140,7 @@ class TwoPassAssembler:
         24
         """
         # check if the memonic is a instruction in the assember instruction table
-        if self.inst_table[memonic]:
+        if memonic in self.inst_table:
             # check if the instruction format is 1 or 2
             if self.inst_table[memonic][0] in [1, 2]:
                 return self.inst_table[memonic][0]
@@ -141,7 +150,7 @@ class TwoPassAssembler:
         elif memonic in self.directive_table:
             # check if the memonic is a directive
             # get the method that has the same name of the memonic and pass it the operands
-            return self.__getattribute__(memonic)(operands)
+            return self.__getattribute__(str.lower(memonic))(operands)
         else:
             # memonic is not an instruction or memonic
             raise SyntaxError("Invalid memonic or directive")
@@ -158,12 +167,17 @@ class TwoPassAssembler:
         >>> TwoPassAssembler.byte("C'EOF'")
         3
         """
+        operand = operand[0]
         if operand[0] == 'C':
             return len(operand[2:len(operand) - 1])
         elif operand[0] == 'X':
             return math.ceil(len(operand[2:len(operand) - 1]) / 2)
         else:
-            raise SyntaxError("Invalid BYTE operand")
+            try:
+                if int(operand[0]): #TODO
+                    return 1
+            except ValueError as e:
+                raise SyntaxError("Invalid BYTE operand")
 
     @staticmethod
     def word(operand):
@@ -188,6 +202,9 @@ class TwoPassAssembler:
 
     def start(self, operands):
         self.start_address = int(operands[0])
+        return 0
+
+    def end(self, operands):
         return 0
 
 if __name__ == '__main__':
