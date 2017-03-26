@@ -26,6 +26,7 @@ class FirstPassTest(unittest.TestCase):
         size = tpa.TwoPassAssembler.byte(["X'38f'"])
         self.assertEqual(size, 2)
 
+
     def test_first_pass(self):
         assembler = tpa.TwoPassAssembler('progtest', 'progtest')
         assembler.first_pass()
