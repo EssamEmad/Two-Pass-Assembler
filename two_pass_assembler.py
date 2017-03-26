@@ -44,7 +44,9 @@ class TwoPassAssembler:
         f = open(self.FILE, "r")
         temp_file = open(self.FILE + ".temp", 'w+')
 
-        current_address = self.start_address
+        current_address = self.start_address = self.get_start_address()
+        # current_address = self.start_address
+
         for line in f:
             # get parts of the instruction
             parts = TwoPassAssembler.get_parts(line)
@@ -154,6 +156,15 @@ class TwoPassAssembler:
         else:
             # memonic is not an instruction or memonic
             raise SyntaxError("Invalid memonic or directive")
+
+    def get_start_address(self):
+        f = open(self.FILE, 'r')
+        # get the first line of the file if it has a START directive
+        # set the start address of the assembler to the operand
+        parts = self.get_parts(f.readline())
+        if parts['memonic'] == 'START':
+            return int(parts['operands'][0])
+        return 0
 
     @staticmethod
     def byte(operand):
