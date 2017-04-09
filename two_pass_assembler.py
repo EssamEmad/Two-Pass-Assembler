@@ -39,10 +39,10 @@ class TwoPassAssembler:
         First pass assembler simulation
         Setup the temp file of the same name as the output and with extension .temp
         setup the symbol table
-        :return: bool
+        :return: a list of objects of Assembly_line
         """
+        first_pass_output = [] #array of assembly_line objects
         f = open(self.FILE, "r")
-        temp_file = open(self.FILE + ".temp", 'w+')
 
         current_address = self.start_address = self.get_start_address()
         # current_address = self.start_address
@@ -59,17 +59,13 @@ class TwoPassAssembler:
             if parts['label']:
                 self.symbol_table[parts['label']] = current_address
 
-            # print line to the file
-            temp_line = "{} {} {} {}\n".format(current_address,
-                                                parts['label'] if parts['label'] else '',
-                                                parts['memonic'],
-                                                str.join(',', parts['operands']))
-            temp_file.write(temp_line)
-
+            assemb_line = Assembly_Line(current_address, parts['label'], parts['memonic'],
+                parts['operands'])
+            first_pass_output.extend(assemb_line)
             current_address += self.get_size(parts['memonic'], parts['operands'])
 
         f.close()
-        temp_file.close()
+        return first_pass_output
 
 
     @staticmethod
