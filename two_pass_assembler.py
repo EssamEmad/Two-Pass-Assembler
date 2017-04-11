@@ -27,7 +27,6 @@ class TwoPassAssembler:
             f = open(file_path, 'r')
         except FileNotFoundError:
             return False
-
         for line in f:
             parts = re.split(' ',line)
             self.inst_table[parts[0]] = [list(map(int, re.split(',', parts[1]))), parts[2].strip()]
@@ -43,6 +42,7 @@ class TwoPassAssembler:
         """
         first_pass_output = [] #array of assembly_line objects
         f = open(self.FILE, "r")
+        # temp_file = open(self.FILE + ".temp", 'w+')
 
         current_address = self.start_address = self.get_start_address()
         # current_address = self.start_address
@@ -59,6 +59,8 @@ class TwoPassAssembler:
             if parts['label']:
                 self.symbol_table[parts['label']] = current_address
 
+            # print line to the file
+    
             assemb_line = Assembly_Line(current_address, parts['label'], parts['memonic'],
                 parts['operands'])
             first_pass_output.extend(assemb_line)
