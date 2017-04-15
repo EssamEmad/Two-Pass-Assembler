@@ -1,6 +1,6 @@
-import two_pass_assembler as tpa
 import unittest
 from itertools import zip_longest
+import two_pass_assembler.two_pass_assembler as tpa
 
 class FirstPassTest(unittest.TestCase):
 
@@ -34,6 +34,10 @@ class FirstPassTest(unittest.TestCase):
         expected = open('progtest-result', 'r')
         for oline, eline in zip_longest(output, expected):
             self.assertEqual(oline, eline)
+
+    def test_literals_support(self):
+        assember = tpa.TwoPassAssembler("prog_with_literals", "prog_with_literals")
+        assember.first_pass()
 
 if __name__ == '__main__':
     unittest.main(exit=False)

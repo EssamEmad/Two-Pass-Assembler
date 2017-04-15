@@ -16,7 +16,9 @@ class TwoPassAssembler:
         self.inst_table = {}
         if not self.load_instructions(self.INST_TABLE_FILE):
             raise ValueError("error loading instruction")
-        self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW"]
+        self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW", "LITORG"]
+        # adding compatibilty with literals 
+        self.literal_table = {} # {"name": address or 0}
 
     def load_instructions(self, file_path):
         """
@@ -44,7 +46,7 @@ class TwoPassAssembler:
         f = open(self.FILE, "r")
         temp_file = open(self.FILE + ".temp", 'w+')
 
-        current_address = self.start_address = self.get_start_address()
+        self.current_address = self.start_address = self.get_start_address()
         # current_address = self.start_address
 
         for line in f:
@@ -57,16 +59,23 @@ class TwoPassAssembler:
 
             # check if a label exist save it to the symbol table
             if parts['label']:
-                self.symbol_table[parts['label']] = current_address
+                self.symbol_table[parts['label']] = self.current_address
+
+            if "operands" not in parts:
+                parts["operands"] = [""]
+
+            # checking if the operand is a literal
+            if re.search("^=([a-zA-Z]\"[a-zA-Z0-9]+\")", parts['operands'][0]):
+                self.literal_table[parts['operands'][0]] = 0
 
             # print line to the file
-            temp_line = "{} {} {} {}\n".format(current_address,
+            temp_line = "{} {} {} {}\n".format(self.current_address,
                                                 parts['label'] if parts['label'] else '',
                                                 parts['memonic'],
-                                                str.join(',', parts['operands']))
+                                                str.join(',', parts['operands'])) # change here for LITORG
             temp_file.write(temp_line)
 
-            current_address += self.get_size(parts['memonic'], parts['operands'])
+            self.current_address += self.get_size(parts['memonic'], parts['operands'])
 
         f.close()
         temp_file.close()
@@ -109,7 +118,7 @@ class TwoPassAssembler:
         if current != "":
             TwoPassAssembler.save_value(current_index, current, parts)
 
-        if parts['operands']:
+        if "operands" in parts:
             parts['operands'] = list(re.split(',', parts['operands']))
 
         return parts
@@ -127,6 +136,7 @@ class TwoPassAssembler:
               "memonic" if current_index == 1 else
               "operands" if current_index == 2 else
               "comment"] = current
+
 
     def get_size(self, memonic, operands):
         """
@@ -164,6 +174,7 @@ class TwoPassAssembler:
         parts = self.get_parts(f.readline())
         if parts['memonic'] == 'START':
             return int(parts['operands'][0])
+        f.close()
         return 0
 
     @staticmethod
@@ -173,9 +184,9 @@ class TwoPassAssembler:
         :param operand: the operand of the 'BYTE' directive
         :return: size of the operand in bytes
 
-        >>> TwoPassAssembler.byte("X'F1'")
+        >>> TwoPassAssembler.byte(["X'F1'"])
         1
-        >>> TwoPassAssembler.byte("C'EOF'")
+        >>> TwoPassAssembler.byte(["C'EOF'"])
         3
         """
         operand = operand[0]
@@ -214,6 +225,25 @@ class TwoPassAssembler:
     def start(self, operands):
         self.start_address = int(operands[0])
         return 0
+
+    def litorg(self, operand):
+        """
+        Adds the literals with no address assigned in the literal table to this
+        literal pool and return size accordinly
+        :return: size of literal pool (int)
+        """
+        total_pool_size = 0
+        current_address = self.current_address
+        if self.literal_table.keys():
+            # get the literal with value = 0
+            for litral in [literal for literal in self.literal_table.keys() if not self.literal_table[literal]]:
+                # TODO add word
+                # get the size of the literal using BYTE method
+                literal_size = TwoPassAssembler.byte([litral[1::]])
+                self.literal_table[litral] = current_address
+                current_address += literal_size
+                total_pool_size += literal_size
+        return total_pool_size
 
     def end(self, operands):
         return 0
