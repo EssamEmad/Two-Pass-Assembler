@@ -1,6 +1,8 @@
 import re
 import math
-
+import sys, os
+sys.path.append(os.path.realpath(__file__))
+from Assembly_Line import Assembly_Line
 
 class TwoPassAssembler:
     """
@@ -41,10 +43,10 @@ class TwoPassAssembler:
         First pass assembler simulation
         Setup the temp file of the same name as the output and with extension .temp
         setup the symbol table
-        :return: bool
+        :return: a list of objects of Assembly_line
         """
+        first_pass_output = [] #array of assembly_line objects
         f = open(self.FILE, "r")
-        temp_file = open(self.FILE + ".temp", 'w+')
 
         self.current_address = self.start_address = self.get_start_address()
         # current_address = self.start_address
@@ -68,17 +70,13 @@ class TwoPassAssembler:
             if re.search("^=([a-zA-Z]\"[a-zA-Z0-9]+\")", parts['operands'][0]):
                 self.literal_table[parts['operands'][0]] = 0
 
-            # print line to the file
-            temp_line = "{} {} {} {}\n".format(self.current_address,
-                                                parts['label'] if parts['label'] else '',
-                                                parts['memonic'],
-                                                str.join(',', parts['operands'])) # change here for LITORG
-            temp_file.write(temp_line)
-
+            assemb_line = TwoPassAssembler(self.current_address, parts['label'], parts['memonic'],
+                parts['operands'])
+            first_pass_output.extend(assemb_line)
             self.current_address += self.get_size(parts['memonic'], parts['operands'])
 
         f.close()
-        temp_file.close()
+        return first_pass_output
 
 
     @staticmethod
@@ -249,5 +247,6 @@ class TwoPassAssembler:
         return 0
 
 if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
+    # import doctest
+    # doctest.testmod()
+    print(Assembly_Line)
