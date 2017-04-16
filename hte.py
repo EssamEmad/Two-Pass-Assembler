@@ -64,9 +64,10 @@ class HTMEGenerator:
         if size_of_object_code + self.text_record_staging[0] > 30:
             # if there's no available space to all bytes in the object code
             # get the remainjng number of hex
-            remaining_size_hex = (30 - self.text_records_pool[0]) * 2
+            remaining_size_hex = (30 - self.text_record_staging[0]) * 2
+
             # add this slice to the text record
-            self.text_record_staging.append(object_code[:remaining_size_hex - 1])
+            self.text_record_staging.append(object_code[:remaining_size_hex])
             self.text_record_staging[0] = 30
             self.generate_and_reset()
 

@@ -47,6 +47,7 @@ class TwoPassAssembler:
         """
         first_pass_output = [] #array of assembly_line objects
         f = open(self.FILE, "r")
+        temp_file = open(self.FILE +'.temp', 'w')
 
         self.current_address = self.start_address = self.get_start_address()
         # current_address = self.start_address
@@ -70,12 +71,20 @@ class TwoPassAssembler:
             if re.search("^=([a-zA-Z]\"[a-zA-Z0-9]+\")", parts['operands'][0]):
                 self.literal_table[parts['operands'][0]] = 0
 
-            assemb_line = TwoPassAssembler(self.current_address, parts['label'], parts['memonic'],
+            temp_line = "{} {} {} {}\n".format(self.current_address,
+                                                parts['label'] if parts['label'] else '',
+                                                parts['memonic'],
+                                                ','.join(parts['operands']))
+
+            temp_file.write(temp_line)
+
+            assemb_line = Assembly_Line(self.current_address, parts['label'], parts['memonic'],
                 parts['operands'])
-            first_pass_output.extend(assemb_line)
+            first_pass_output.append(assemb_line)
             self.current_address += self.get_size(parts['memonic'], parts['operands'])
 
         f.close()
+        temp_file.close()
         return first_pass_output
 
 

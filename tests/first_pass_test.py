@@ -1,6 +1,11 @@
 import unittest
 from itertools import zip_longest
-import two_pass_assembler.two_pass_assembler as tpa
+from sys import path
+from os.path import dirname, abspath
+
+path.append(dirname(dirname(abspath(__file__))))
+
+import two_pass_assembler as tpa
 
 class FirstPassTest(unittest.TestCase):
 
@@ -33,7 +38,12 @@ class FirstPassTest(unittest.TestCase):
         output = open('progtest.temp', 'r')
         expected = open('progtest-result', 'r')
         for oline, eline in zip_longest(output, expected):
-            self.assertEqual(oline, eline)
+            if not oline:
+                oline = ""
+            if not eline:
+                eline = ""
+
+            self.assertEqual(oline.strip(), eline.strip())
 
     def test_literals_support(self):
         assember = tpa.TwoPassAssembler("prog_with_literals", "prog_with_literals")
