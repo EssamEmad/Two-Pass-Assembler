@@ -1,11 +1,11 @@
 class Second_Pass:
 
-    def registers = {
-    'A':'00', 'X':'01', 'L':'02','B': '03'
+    registers = {
+    'A':'00', 'X':'01', 'L':'02','B': '03',
     'S':'04','T': '05', 'F':'06', 'PC':'08', 'SW':'09'
     }
-    def instruction_set
-    def symbol_table
+    # instruction_set = None
+    # def symbol_table
     def __init__(self, lines, instruction_set, symbol_table):
         """ Takes an array of Assembly_Line"""
         self.lines = lines
@@ -58,6 +58,7 @@ class Second_Pass:
                         if line.mnemonic[0] == '+':
                             if len(operand) > 5:
                                 #TODO handle the error
+                                print("latoa cantante")
                             address_in_obj_code =  operand
                         else:
                             # format 3
@@ -65,6 +66,7 @@ class Second_Pass:
                             operand_abs_address = self.symbol_table[operand]
                             if operand_abs_address is None:
                                 #TODO handle the error
+                                print("hen sendrono onious")
                             #first try PC relative
                             pc = lines[i + 1].current_address
                             TA = operand_abs_address - pc
@@ -73,11 +75,11 @@ class Second_Pass:
                                 # we can make it PC relative
                                 address_in_obj_code = self.getTwosHex(TA)
                                 p = 1
-
                             else:
                                 #use base relative
                                 if base is None:
                                     #TODO Handle the error that the programmer didn't specify the base
+                                    print('inna mehrarar')
                                 else:
                                     TA = operand_abs_address - base
                                     if TA <= maximum_offset - 1 and TA > -1 * maximum_offset:
@@ -86,14 +88,18 @@ class Second_Pass:
                                         b = 1
                                     else:
                                         #TODO handle out of range error
-        
+                                        print('Pulp Fiction Sucks :/')
+
                         mnemonic_bin = format(int(line.mnemonic,16),'02b')
                         mnemonic_bin = mnemonic_bin[0:len(mnemonic_bin) - 2] #remove last 2 bits
-                        obj_code_bin = mnemonic_bin + str(n) + str(i) + str(x) + str(b) + str(p)
-                            + str(e)
+                        obj_code_bin = mnemonic_bin + str(n) + str(i) + str(x) + str(b) + str(p) + str(e)
                         object_codes.extend(format(int(obj_code_bin, 2),'02X') + address_in_obj_code)
 
     def getTwosHex(self,int_address):
+        twos = (abs(int_address) ^ 0xFFF) + 1 if int_address < 0 else int_address
+        return format(twos, '02X')
+
+
     def get_opcode(self, mnemonic):
         if mnemonic[0] == '+':
             mnemonic = mnemonic[1:]
@@ -101,4 +107,5 @@ class Second_Pass:
 
         if opcode is None:
             #TODO handle the error
+            print("handle the error")
         return opcode
