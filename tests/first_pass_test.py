@@ -49,5 +49,10 @@ class FirstPassTest(unittest.TestCase):
         assember = tpa.TwoPassAssembler("prog_with_literals", "prog_with_literals")
         assember.first_pass()
 
+
+    def test_literals_support_2(self):
+        assember = tpa.TwoPassAssembler("prog_with_literals2", "prog_with_literals2")
+        assember.first_pass()
+
 if __name__ == '__main__':
     unittest.main(exit=False)

@@ -81,7 +81,12 @@ class TwoPassAssembler:
             assemb_line = Assembly_Line(self.current_address, parts['label'], parts['memonic'],
                 parts['operands'])
             first_pass_output.append(assemb_line)
-            self.current_address += self.get_size(parts['memonic'], parts['operands'])
+
+            current_inst_size = self.get_size(parts['memonic'], parts['operands'])
+            current_address_int = int(self.current_address, 16)
+            current_address_int += current_inst_size
+            self.current_address = format(current_address_int, '04x')
+            # self.current_address += self.get_size(parts['memonic'], parts['operands'])
 
         f.close()
         temp_file.close()
@@ -180,7 +185,8 @@ class TwoPassAssembler:
         # set the start address of the assembler to the operand
         parts = self.get_parts(f.readline())
         if parts['memonic'] == 'START':
-            return int(parts['operands'][0])
+            # removed int to return a string which is more applicable to hex
+            return parts['operands'][0]
         f.close()
         return 0
 
@@ -248,7 +254,11 @@ class TwoPassAssembler:
                 # get the size of the literal using BYTE method
                 literal_size = TwoPassAssembler.byte([litral[1::]])
                 self.literal_table[litral] = current_address
-                current_address += literal_size
+
+                current_address_int = int(current_address, 16)
+                current_address_int += literal_size
+                current_address = format(current_address_int, '04x')
+                # current_address += literal_size
                 total_pool_size += literal_size
         return total_pool_size
 
