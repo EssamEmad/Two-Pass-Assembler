@@ -208,7 +208,7 @@ class TwoPassAssembler:
             return math.ceil(len(operand[2:len(operand) - 1]) / 2)
         else:
             try:
-                if int(operand[0]): #TODO
+                if int(operand): #TODO
                     return 1
             except ValueError as e:
                 raise SyntaxError("Invalid BYTE operand")
