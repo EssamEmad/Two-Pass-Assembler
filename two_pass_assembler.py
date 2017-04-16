@@ -263,7 +263,7 @@ class TwoPassAssembler:
         return total_pool_size
 
     def end(self, operands):
-        return 0
+        return self.litorg(operands)
 
 if __name__ == '__main__':
     # import doctest
