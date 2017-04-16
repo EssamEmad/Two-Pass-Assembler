@@ -5,8 +5,13 @@ class Assembly_Line:
     code ...etc
     """
 
-    def __init__(self, current_address, label, memonic, operands):
+    def __init__(self, current_address, label, mnemonic, operands):
         self.current_address = current_address
         self.label = label
         self.memonic = memonic
         self.operands = operands
+
+    def current_address #location counter
+    def label #label or None
+    def mnemonic
+    def operands #list of operands

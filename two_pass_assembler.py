@@ -19,7 +19,7 @@ class TwoPassAssembler:
         if not self.load_instructions(self.INST_TABLE_FILE):
             raise ValueError("error loading instruction")
         self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW", "LITORG"]
-        # adding compatibilty with literals 
+        # adding compatibilty with literals
         self.literal_table = {} # {"name": address or 0}
 
     def load_instructions(self, file_path):
@@ -31,7 +31,6 @@ class TwoPassAssembler:
             f = open(file_path, 'r')
         except FileNotFoundError:
             return False
-
         for line in f:
             parts = re.split(' ',line)
             self.inst_table[parts[0]] = [list(map(int, re.split(',', parts[1]))), parts[2].strip()]
@@ -71,6 +70,7 @@ class TwoPassAssembler:
             if re.search("^=([a-zA-Z]\"[a-zA-Z0-9]+\")", parts['operands'][0]):
                 self.literal_table[parts['operands'][0]] = 0
 
+<<<<<<< HEAD
             temp_line = "{} {} {} {}\n".format(self.current_address,
                                                 parts['label'] if parts['label'] else '',
                                                 parts['memonic'],
@@ -79,6 +79,11 @@ class TwoPassAssembler:
             temp_file.write(temp_line)
 
             assemb_line = Assembly_Line(self.current_address, parts['label'], parts['memonic'],
+=======
+            # print line to the file
+
+            assemb_line = Assembly_Line(current_address, parts['label'], parts['memonic'],
+>>>>>>> second-pass
                 parts['operands'])
             first_pass_output.append(assemb_line)
 
