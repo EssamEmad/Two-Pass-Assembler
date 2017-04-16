@@ -70,7 +70,6 @@ class TwoPassAssembler:
             if re.search("^=([a-zA-Z]\"[a-zA-Z0-9]+\")", parts['operands'][0]):
                 self.literal_table[parts['operands'][0]] = 0
 
-<<<<<<< HEAD
             temp_line = "{} {} {} {}\n".format(self.current_address,
                                                 parts['label'] if parts['label'] else '',
                                                 parts['memonic'],
@@ -79,11 +78,6 @@ class TwoPassAssembler:
             temp_file.write(temp_line)
 
             assemb_line = Assembly_Line(self.current_address, parts['label'], parts['memonic'],
-=======
-            # print line to the file
-
-            assemb_line = Assembly_Line(current_address, parts['label'], parts['memonic'],
->>>>>>> second-pass
                 parts['operands'])
             first_pass_output.append(assemb_line)
 

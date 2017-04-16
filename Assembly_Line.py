@@ -10,8 +10,8 @@ class Assembly_Line:
         self.label = label
         self.memonic = memonic
         self.operands = operands
-
-    def current_address #location counter
-    def label #label or None
-    def mnemonic
-    def operands #list of operands
+    #
+    # def current_address #location counter
+    # def label #label or None
+    # def mnemonic
+    # def operands #list of operands
