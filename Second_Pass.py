@@ -15,8 +15,8 @@ class Second_Pass:
     def second_pass(self):
         object_codes = []
         base = None # this is used for base relative addressing mode
-        for i in range(len(lines)):
-            line = lines[i]
+        for i in range(len(self.lines)):
+            line = self.lines[i]
             if line.mnemonic == 'END':
                 return # This guarrentees that we can calculate
                 #the PC for every instruction by checking the next line (No out of bounds)
@@ -68,7 +68,7 @@ class Second_Pass:
                                 #TODO handle the error
                                 print("hen sendrono onious")
                             #first try PC relative
-                            pc = lines[i + 1].current_address
+                            pc = self.lines[i + 1].current_address
                             TA = operand_abs_address - pc
                             maximum_offset = 2048 #2^11
                             if TA <= maximum_offset - 1 and TA > -1 * maximum_offset:
@@ -103,7 +103,7 @@ class Second_Pass:
     def get_opcode(self, mnemonic):
         if mnemonic[0] == '+':
             mnemonic = mnemonic[1:]
-        opcode = instruction_set[mnemonic]
+        opcode = self.instruction_set[mnemonic]
 
         if opcode is None:
             #TODO handle the error
