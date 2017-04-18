@@ -19,9 +19,9 @@ class FirstPassTest(unittest.TestCase):
 
     def test_get_parts(self):
         parts = tpa.TwoPassAssembler.get_parts('COPY\tSTART\t1000,2000')
-        self.assertEqual(parts, {'label': 'COPY', 'memonic': 'START', 'operands': ['1000', '2000']})
+        self.assertEqual(parts, {'label': 'COPY', 'mnemonic': 'START', 'operands': ['1000', '2000']})
         parts = tpa.TwoPassAssembler.get_parts('\tLDA\tCOPY,X')
-        self.assertEqual(parts, {'label': '', 'memonic': 'LDA', 'operands': ['COPY', 'X']})
+        self.assertEqual(parts, {'label': '', 'mnemonic': 'LDA', 'operands': ['COPY', 'X']})
 
     def test_byte(self):
         size = tpa.TwoPassAssembler.byte(["C'HELLO'"])

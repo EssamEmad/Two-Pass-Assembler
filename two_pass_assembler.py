@@ -55,8 +55,8 @@ class TwoPassAssembler:
             # get parts of the instruction
             parts = TwoPassAssembler.get_parts(line)
 
-            # check if memonic exist
-            if not parts['memonic']:
+            # check if mnemonic exist
+            if not parts['mnemonic']:
                 raise SyntaxError('Memocis must be provided')
 
             # check if a label exist save it to the symbol table
@@ -72,20 +72,20 @@ class TwoPassAssembler:
 
             temp_line = "{} {} {} {}\n".format(self.current_address,
                                                 parts['label'] if parts['label'] else '',
-                                                parts['memonic'],
+                                                parts['mnemonic'],
                                                 ','.join(parts['operands']))
 
             temp_file.write(temp_line)
 
-            assemb_line = Assembly_Line(self.current_address, parts['label'], parts['memonic'],
+            assemb_line = Assembly_Line(self.current_address, parts['label'], parts['mnemonic'],
                 parts['operands'])
             first_pass_output.append(assemb_line)
 
-            current_inst_size = self.get_size(parts['memonic'], parts['operands'])
+            current_inst_size = self.get_size(parts['mnemonic'], parts['operands'])
             current_address_int = int(self.current_address, 16)
             current_address_int += current_inst_size
             self.current_address = format(current_address_int, '04x')
-            # self.current_address += self.get_size(parts['memonic'], parts['operands'])
+            # self.current_address += self.get_size(parts['mnemonic'], parts['operands'])
 
         f.close()
         temp_file.close()
@@ -102,7 +102,7 @@ class TwoPassAssembler:
 
             parts {
                 'label': label if exist
-                'memonic' memoic in the instruction
+                'mnemonic' memoic in the instruction
                 'operands': comma seperated operands
                 'comments' comments if exist
             }
@@ -144,16 +144,16 @@ class TwoPassAssembler:
         :return: None
         """
         parts["label" if not current_index else
-              "memonic" if current_index == 1 else
+              "mnemonic" if current_index == 1 else
               "operands" if current_index == 2 else
               "comment"] = current
 
 
-    def get_size(self, memonic, operands):
+    def get_size(self, mnemonic, operands):
         """
         Returns the size of the instruction depending on the instruction format
         and if it's a directive
-        :param memonic: the operation memonic
+        :param mnemonic: the operation mnemonic
         :param operands: operands of the instruction to decide on format 3 or 4
         :return: int
 
@@ -162,28 +162,28 @@ class TwoPassAssembler:
         >>> self.get_size("BYTE", ["C'EOF'"])
         24
         """
-        # check if the memonic is a instruction in the assember instruction table
-        if memonic in self.inst_table:
+        # check if the mnemonic is a instruction in the assember instruction table
+        if mnemonic in self.inst_table:
             # check if the instruction format is 1 or 2
-            if self.inst_table[memonic][0] in [1, 2]:
-                return self.inst_table[memonic][0]
+            if self.inst_table[mnemonic][0] in [1, 2]:
+                return self.inst_table[mnemonic][0]
             else:
                 # return size 4 if + which indicates a type 4 instruction
                 return 4 if operands[0] == '+' else 3
-        elif memonic in self.directive_table:
-            # check if the memonic is a directive
-            # get the method that has the same name of the memonic and pass it the operands
-            return self.__getattribute__(str.lower(memonic))(operands)
+        elif mnemonic in self.directive_table:
+            # check if the mnemonic is a directive
+            # get the method that has the same name of the mnemonic and pass it the operands
+            return self.__getattribute__(str.lower(mnemonic))(operands)
         else:
-            # memonic is not an instruction or memonic
-            raise SyntaxError("Invalid memonic or directive")
+            # mnemonic is not an instruction or mnemonic
+            raise SyntaxError("Invalid mnemonic or directive")
 
     def get_start_address(self):
         f = open(self.FILE, 'r')
         # get the first line of the file if it has a START directive
         # set the start address of the assembler to the operand
         parts = self.get_parts(f.readline())
-        if parts['memonic'] == 'START':
+        if parts['mnemonic'] == 'START':
             # removed int to return a string which is more applicable to hex
             return parts['operands'][0]
         f.close()

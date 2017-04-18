@@ -17,7 +17,9 @@ class Second_Pass:
         base = None # this is used for base relative addressing mode
         for i in range(len(self.lines)):
             line = self.lines[i]
-            if line.mnemonic == 'END':
+            if line.mnemonic == 'START':
+                print('start')
+            elif line.mnemonic == 'END':
                 return # This guarrentees that we can calculate
                 #the PC for every instruction by checking the next line (No out of bounds)
             elif line.mnemonic == 'BASE':
