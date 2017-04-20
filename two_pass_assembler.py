@@ -163,15 +163,14 @@ class TwoPassAssembler:
         24
         """
         # check if the mnemonic is a instruction in the assember instruction table
-        mnemonic = mnemonic[1::] if mnemonic[0] == '+' else mnemonic
-        print(mnemonic)
-        if mnemonic in self.inst_table:
+        tmnemonic = mnemonic[1::] if mnemonic[0] == '+' else mnemonic
+        if tmnemonic in self.inst_table:
             # check if the instruction format is 1 or 2
-            if self.inst_table[mnemonic][0] in [1, 2]:
-                return self.inst_table[mnemonic][0]
+            if self.inst_table[tmnemonic][0] in [1, 2]:
+                return self.inst_table[tmnemonic][0]
             else:
                 # return size 4 if + which indicates a type 4 instruction
-                return 4 if operands[0] == '+' else 3
+                return 4 if mnemonic[0] == '+' else 3
         elif mnemonic in self.directive_table:
             # check if the mnemonic is a directive
             # get the method that has the same name of the mnemonic and pass it the operands
