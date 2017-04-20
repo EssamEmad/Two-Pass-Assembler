@@ -18,7 +18,7 @@ class TwoPassAssembler:
         self.inst_table = {}
         if not self.load_instructions(self.INST_TABLE_FILE):
             raise ValueError("error loading instruction")
-        self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW", "LITORG"]
+        self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW", "LITORG", "BASE"]
         # adding compatibilty with literals
         self.literal_table = {} # {"name": address or 0}
 
@@ -118,11 +118,11 @@ class TwoPassAssembler:
                 TwoPassAssembler.save_value(current_index, current, parts)
                 current_index += 1
                 current = ""
-            elif t.isalpha():
+            elif t.isalpha() or (t == '+' and not current):
                 current += t
             else:
                 if len(current) == 0 and current_index != 2:
-                    raise SyntaxError("Insturcations parts must not start with a number" + t)
+                    raise SyntaxError("Unexpected Start of instruction: " + t)
                 else:
                     current += t
 
@@ -163,6 +163,8 @@ class TwoPassAssembler:
         24
         """
         # check if the mnemonic is a instruction in the assember instruction table
+        mnemonic = mnemonic[1::] if mnemonic[0] == '+' else mnemonic
+        print(mnemonic)
         if mnemonic in self.inst_table:
             # check if the instruction format is 1 or 2
             if self.inst_table[mnemonic][0] in [1, 2]:
@@ -240,6 +242,9 @@ class TwoPassAssembler:
         self.start_address = int(operands[0])
         return 0
 
+    def base(self, operands):
+        return 0
+
     def litorg(self, operand):
         """
         Adds the literals with no address assigned in the literal table to this
@@ -269,4 +274,6 @@ class TwoPassAssembler:
 if __name__ == '__main__':
     # import doctest
     # doctest.testmod()
-    print(Assembly_Line)
+    FirstPass = TwoPassAssembler('tests/CODE.txt', 'tests/CODE-result.txt')
+    FirstPass.first_pass()
+
