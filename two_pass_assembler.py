@@ -122,7 +122,7 @@ class TwoPassAssembler:
                 current += t
             else:
                 if len(current) == 0 and current_index != 2:
-                    raise SyntaxError("Insturcations parts must not start with a number")
+                    raise SyntaxError("Insturcations parts must not start with a number" + t)
                 else:
                     current += t
 

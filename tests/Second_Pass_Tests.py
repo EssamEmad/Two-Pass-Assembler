@@ -12,7 +12,7 @@ import two_pass_assembler as tpa
 class Second_Pass_Tests(unittest.TestCase):
 
     def test_second_pass_trivial(self):
-        first_pass = tpa.TwoPassAssembler('progtest','progtest')
+        first_pass = tpa.TwoPassAssembler('CODE.txt','progtest')
         lines = first_pass.first_pass()
         print('Symbol table \n \n \n ')
         print(first_pass.symbol_table)

@@ -13,7 +13,7 @@ class FirstPassTest(unittest.TestCase):
         """
         Test the load instructions functions
         """
-        assembler = tpa.TwoPassAssembler('progtest', 'progtest')
+        assembler = tpa.TwoPassAssembler('CODE.txt', 'progtest')
         self.assertEqual(len(assembler.inst_table.keys()), 58)
         self.assertEqual(assembler.inst_table['RSUB'], [[3,4], '4C'])
 

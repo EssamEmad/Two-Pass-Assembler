@@ -24,6 +24,8 @@ class Second_Pass:
                 #the PC for every instruction by checking the next line (No out of bounds)
             elif line.mnemonic == 'BASE':
                 base = self.symbol_table[line.operands[0]]
+            elif line.mnemonic == 'BYTE' or line.mnemonic == 'WORD':
+                object_codes.extend(line.operands[0])
             else:
                 opcode_format = self.get_opcode(line.mnemonic)
                 is_indexed = len(line.operands) > 1
