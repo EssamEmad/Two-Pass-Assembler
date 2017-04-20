@@ -8,5 +8,10 @@ class Assembly_Line:
     def __init__(self, current_address, label, mnemonic, operands):
         self.current_address = current_address
         self.label = label
-        self.memonic = mnemonic
+        self.mnemonic = mnemonic
         self.operands = operands
+    #
+    # def current_address #location counter
+    # def label #label or None
+    # def mnemonic
+    # def operands #list of operands

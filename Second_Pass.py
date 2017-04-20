@@ -17,11 +17,15 @@ class Second_Pass:
         base = None # this is used for base relative addressing mode
         for i in range(len(self.lines)):
             line = self.lines[i]
-            if line.mnemonic == 'END':
+            if line.mnemonic == 'START':
+                print('start')
+            elif line.mnemonic == 'END':
                 return # This guarrentees that we can calculate
                 #the PC for every instruction by checking the next line (No out of bounds)
             elif line.mnemonic == 'BASE':
                 base = self.symbol_table[line.operands[0]]
+            elif line.mnemonic == 'BYTE' or line.mnemonic == 'WORD':
+                object_codes.extend(line.operands[0])
             else:
                 opcode_format = self.get_opcode(line.mnemonic)
                 is_indexed = len(line.operands) > 1
