@@ -210,6 +210,8 @@ class TwoPassAssembler:
         else:
             try:
                 if int(operand): #TODO
+                    if len(hex(operand)) > 4:
+                        raise ValueError("Number can't be represented with a Byte")
                     return 1
             except ValueError as e:
                 raise SyntaxError("Invalid BYTE operand")
