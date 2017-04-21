@@ -73,8 +73,8 @@ class Second_Pass:
                             address_in_obj_code =  self.symbol_table[operand] if not operand[0].isdigit() else operand
                         else:
                             # format 3
-                            if is_immediate:
-                                address_in_obj_code = self.symbol_table[operand] if not operand[0].isdigit() else operand
+                            if is_immediate and operand[0].isdigit():
+                                address_in_obj_code = operand #self.symbol_table[operand] if not operand[0].isdigit() else operand
                             else:
                                 hex_target_address = None
                                 operand_abs_address = self.symbol_table[operand]
@@ -85,7 +85,7 @@ class Second_Pass:
                                 # print('{}\n'.format(i))
                                 pc = self.lines[index + 1].current_address
                                 TA = int(operand_abs_address,16) - int(pc,16)
-                                # print('index:{} pc hex is:{}, pc is:{} TA is:{}\n'.format(index,pc,int(pc,16),TA))
+                                print('index:{} pc hex is:{}, pc is:{} TA is:{}\n'.format(index,pc,int(pc,16),TA))
                                 maximum_offset = 2048 #2^11
                                 if TA <= maximum_offset - 1 and TA > -1 * maximum_offset:
                                     # we can make it PC relative
@@ -108,13 +108,19 @@ class Second_Pass:
                         mnemonic_bin = format(int(opcode,16),'08b')
                         mnemonic_bin = mnemonic_bin[0:len(mnemonic_bin) - 2] #remove last 2 bits
                         obj_code_bin = mnemonic_bin + str(n) + str(i) + str(x) + str(b) + str(p) + str(e)
-                        full_obj_code = format(int(obj_code_bin, 2),'04X') + address_in_obj_code
+                        #Align displacement with zeros
+                        while line.mnemonic[0] == '+' and len(address_in_obj_code) < 5:
+                            address_in_obj_code = '0' + address_in_obj_code
+                        #for format 3:
+                        while len(address_in_obj_code) < 3:
+                            address_in_obj_code = '0' + address_in_obj_code
+                        full_obj_code = format(int(obj_code_bin, 2),'03X') + address_in_obj_code
                         print("Instruction:{} opcode:{} Mnemonic in binary:{} Object_code_bin:{} hex:{}, full_object_code: {}".format(line.mnemonic, opcode,mnemonic_bin,obj_code_bin,format(int(obj_code_bin, 2),'02X'),full_obj_code))
                         object_codes.append(str(full_obj_code))
         return object_codes
     def getTwosHex(self,int_address):
         twos = (abs(int_address) ^ 0xFFF) + 1 if int_address < 0 else int_address
-        return format(twos, '02X')
+        return format(twos, '03X')
 
 
     def get_opcode(self, mnemonic):
