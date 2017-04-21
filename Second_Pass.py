@@ -33,7 +33,9 @@ class Second_Pass:
                 dummy = 0
             elif line.mnemonic == 'BYTE' or line.mnemonic == 'WORD':
                 object_codes.append(line.operands[0])
-                ht.add_text_record(line.operands[0])
+                # ht.add_text_record(line.operands[0])
+                print(operand[0], self.get_value((operand[0])))
+                ht.add_text_record(self.get_value(line.operands[0]))
             elif line.mnemonic == 'RSUB':
                 #special case
                 object_codes.append('4C0000')
@@ -125,7 +127,7 @@ class Second_Pass:
                         while len(address_in_obj_code) < 3:
                             address_in_obj_code = '0' + address_in_obj_code
                         full_obj_code = format(int(obj_code_bin, 2),'03X') + address_in_obj_code
-                        print("Instruction:{} opcode:{} Mnemonic in binary:{} Object_code_bin:{} hex:{}, full_object_code: {}".format(line.mnemonic, opcode,mnemonic_bin,obj_code_bin,format(int(obj_code_bin, 2),'02X'),full_obj_code))
+                        # print("Instruction:{} opcode:{} Mnemonic in binary:{} Object_code_bin:{} hex:{}, full_object_code: {}".format(line.mnemonic, opcode,mnemonic_bin,obj_code_bin,format(int(obj_code_bin, 2),'02X'),full_obj_code))
                         object_codes.append(str(full_obj_code))
                         ht.add_text_record(str(full_obj_code))
         return object_codes
@@ -143,3 +145,23 @@ class Second_Pass:
             #TODO handle the error
             print("handle the error")
         return opcode
+
+    def get_value(self, operand):
+        """
+        Get the hex value of the BYTE, WORD directives
+        :param operand: operand for the BYTE, WORD directives
+        :return:
+        """
+        value = ''
+        if operand[0] == 'C':
+            word = operand
+            print(word)
+            word_length = len(operand)
+            value = "".join([hex(ord(s))[2:] for s in word[2: word_length - 1]])
+            print("Ascii is ", value)
+        elif operand[0] == 'X':
+            value = operand[2: len(operand) - 1]
+        else:
+            # value = hex(int(operand))[2::]
+            value = operand
+        return value
