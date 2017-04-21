@@ -1,3 +1,4 @@
+from hte import HTMEGenerator
 class Second_Pass:
 
     registers = {
@@ -15,12 +16,15 @@ class Second_Pass:
     def second_pass(self):
         object_codes = []
         base = None # this is used for base relative addressing mode
+        startLine = self.lines[0]
+        ht = HTMEGenerator(startLine.label,startLine.operands[0],'0')
         for index,line in enumerate(self.lines):
             # line = self.lines[i]
             # print('line with instruction:{} has address:{}'.format(line.mnemonic, line.current_address))
             if line.mnemonic == 'START':
-                print('start')
+                continue
             elif line.mnemonic == 'END':
+                ht.output_records(line.operands[0],'output_htme.txt')
                 break # This guarrentees that we can calculate
                 #the PC for every instruction by checking the next line (No out of bounds)
             elif line.mnemonic == 'BASE':
@@ -29,9 +33,11 @@ class Second_Pass:
                 dummy = 0
             elif line.mnemonic == 'BYTE' or line.mnemonic == 'WORD':
                 object_codes.append(line.operands[0])
+                ht.add_text_record(line.operands[0])
             elif line.mnemonic == 'RSUB':
                 #special case
                 object_codes.append('4C0000')
+                ht.add_text_record('4c0000')
             else:
                 opcode_format = self.get_opcode(line.mnemonic)
                 is_indexed = len(line.operands) > 1
@@ -40,8 +46,11 @@ class Second_Pass:
                 # switch on formats
                 if opcode_format[0][0] == 1:
                     object_codes.append(opcode)
+                    ht.add_text_record(opcode)
                 elif opcode_format[0][0] == 2:
                     object_codes.append(opcode + self.registers[operand])
+                    ht.add_text_record(opcode + self.registers[operand])
+
                 else:
                     #format 3 and 4
                     # print('operand is:{}\n'.format(operand))
@@ -71,6 +80,7 @@ class Second_Pass:
                                 #TODO handle the error
                                 print("latoa cantante")
                             address_in_obj_code =  self.symbol_table[operand] if not operand[0].isdigit() else operand
+                            ht.add_modification_record(format(int(line.current_address,16) + 1,'02X'),5)
                         else:
                             # format 3
                             if is_immediate and operand[0].isdigit():
@@ -117,6 +127,7 @@ class Second_Pass:
                         full_obj_code = format(int(obj_code_bin, 2),'03X') + address_in_obj_code
                         print("Instruction:{} opcode:{} Mnemonic in binary:{} Object_code_bin:{} hex:{}, full_object_code: {}".format(line.mnemonic, opcode,mnemonic_bin,obj_code_bin,format(int(obj_code_bin, 2),'02X'),full_obj_code))
                         object_codes.append(str(full_obj_code))
+                        ht.add_text_record(str(full_obj_code))
         return object_codes
     def getTwosHex(self,int_address):
         twos = (abs(int_address) ^ 0xFFF) + 1 if int_address < 0 else int_address

@@ -77,7 +77,7 @@ class HTMEGenerator:
         else:
             self.text_record_staging[0] += size_of_object_code
             self.text_record_staging.append(object_code)
-        
+
         if self.text_record_staging[0] == 30:
             self.generate_and_reset()
 
