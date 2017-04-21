@@ -93,6 +93,12 @@ class TwoPassAssembler:
             self.current_address = format(current_address_int, '04x')
             # self.current_address += self.get_size(parts['mnemonic'], parts['operands'])
 
+        symbol_table = open(self.FILE + ".symbols", 'w')
+        for symbol, address in self.symbol_table.items():
+            # print(symbol, address)
+            symbol_table.write("{}: {}\n".format(symbol, address))
+
+        symbol_table.close()
         f.close()
         temp_file.close()
         return first_pass_output
