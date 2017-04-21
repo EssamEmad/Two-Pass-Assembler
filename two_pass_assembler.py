@@ -52,6 +52,10 @@ class TwoPassAssembler:
         # current_address = self.start_address
 
         for line in f:
+            # handle comments
+            if line[0] == '.':
+                continue
+
             # get parts of the instruction
             parts = TwoPassAssembler.get_parts(line)
 
@@ -61,6 +65,8 @@ class TwoPassAssembler:
 
             # check if a label exist save it to the symbol table
             if parts['label']:
+                if parts['label'] in self.symbol_table:
+                    raise ValueError('Duplicate Label: ', parts['label'])
                 self.symbol_table[parts['label']] = self.current_address
 
             if "operands" not in parts:
