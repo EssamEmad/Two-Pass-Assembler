@@ -79,8 +79,7 @@ class Second_Pass:
                         address_in_obj_code = None
                         if line.mnemonic[0] == '+':
                             if len(operand) > 5:
-                                #TODO handle the error
-                                print("latoa cantante")
+                                raise SyntaxError('Operand is too big')
                             address_in_obj_code =  self.symbol_table[operand] if not operand[0].isdigit() else operand
                             ht.add_modification_record(format(int(line.current_address,16) + 1,'02X'),5)
                         else:
@@ -91,8 +90,7 @@ class Second_Pass:
                                 hex_target_address = None
                                 operand_abs_address = self.symbol_table[operand]
                                 if operand_abs_address is None:
-                                    #TODO handle the error
-                                    print("hen sendrono onious")
+                                    raise SyntaxError('Cant find operand:{} in symbol table'.format(operand))
                                 #first try PC relative
                                 # print('{}\n'.format(i))
                                 pc = self.lines[index + 1].current_address
@@ -106,8 +104,7 @@ class Second_Pass:
                                 else:
                                     #use base relative
                                     if base is None:
-                                        #TODO Handle the error that the programmer didn't specify the base
-                                        print('inna mehrarar')
+                                        raise SyntaxError('Need to set BASE because PC is out of bounds')
                                     else:
                                         TA = int(operand_abs_address,16) - int(base,16)
                                         if TA <= maximum_offset - 1 and TA > -1 * maximum_offset:
@@ -142,8 +139,7 @@ class Second_Pass:
         opcode = self.instruction_set[mnemonic]
 
         if opcode is None:
-            #TODO handle the error
-            print("handle the error")
+            raise SyntaxError('No function named: {}'.format(mnemonic))
         return opcode
 
     def get_value(self, operand):
