@@ -8,11 +8,12 @@ class Second_Pass:
     }
     # instruction_set = None
     # def symbol_table
-    def __init__(self, lines, instruction_set, symbol_table):
+    def __init__(self, lines, instruction_set, symbol_table, filename="output"):
         """ Takes an array of Assembly_Line"""
         self.lines = lines
         self.instruction_set = instruction_set
         self.symbol_table = symbol_table
+        self.filename = filename
 
     def second_pass(self):
         object_codes = []
@@ -25,7 +26,7 @@ class Second_Pass:
             if line.mnemonic == 'START':
                 continue
             elif line.mnemonic == 'END':
-                ht.output_records(line.operands[0],'output_htme.txt')
+                ht.output_records(line.operands[0], self.filename + ".obj")
                 break # This guarrentees that we can calculate
                 #the PC for every instruction by checking the next line (No out of bounds)
             elif line.mnemonic == 'BASE':
