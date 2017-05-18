@@ -178,8 +178,8 @@ class TwoPassAssembler:
         tmnemonic = mnemonic[1::] if mnemonic[0] == '+' else mnemonic
         if tmnemonic in self.inst_table:
             # check if the instruction format is 1 or 2
-            if self.inst_table[tmnemonic][0] in [1, 2]:
-                return self.inst_table[tmnemonic][0]
+            if self.inst_table[tmnemonic][0] in [1, 2] or self.inst_table[tmnemonic][0] == [2]:
+                return self.inst_table[tmnemonic][0][0]
             else:
                 # return size 4 if + which indicates a type 4 instruction
                 return 4 if mnemonic[0] == '+' else 3
@@ -189,6 +189,7 @@ class TwoPassAssembler:
             return self.__getattribute__(str.lower(mnemonic))(operands)
         else:
             # mnemonic is not an instruction or mnemonic
+            print("mnemonic : ", tmnemonic)
             raise SyntaxError("Invalid mnemonic or directive")
 
     def get_start_address(self):

@@ -26,7 +26,7 @@ class Second_Pass:
             if line.mnemonic == 'START':
                 continue
             elif line.mnemonic == 'END':
-                ht.output_records(line.operands[0], self.filename + ".obj")
+                ht.output_records(line.operands[0], self.filename + ".obj", line.current_address[-2:])
                 break # This guarrentees that we can calculate
                 #the PC for every instruction by checking the next line (No out of bounds)
             elif line.mnemonic == 'BASE':

@@ -30,7 +30,10 @@ class HTMEGenerator:
         """
         if len(name) < 6:
           name = name + " "*(6 - len(name))
-        self.head_record = "{}{}{}{}".format('H', name[:5], starting_address, size_in_bytes)
+        # self.head_record = "{}{}{}{}".format('H', name[:5], starting_address)
+        self.name = name
+        self.starting_address = starting_address
+
         self.starting_address_hex = starting_address
         """
         stage object code until the size is greater than 30 or the output is required
@@ -128,7 +131,7 @@ class HTMEGenerator:
         no_of_half_bytes = format(no_of_half_bytes, '02x')
         self.mod_records.append("{}{}{}".format('M', start_address, no_of_half_bytes))
 
-    def output_records(self, address, file_name):
+    def output_records(self, address, file_name, size_in_bytes):
         """
         output the htme records to the file given by file_name
 
@@ -145,6 +148,7 @@ class HTMEGenerator:
         if self.text_record_staging[0]:
             self.generate_and_reset()
 
+        self.head_record = "{}{}{}{}".format('H', self.name[:5], size_in_bytes, self.starting_address)
         f.write(self.head_record)
         f.write("\n")
 
