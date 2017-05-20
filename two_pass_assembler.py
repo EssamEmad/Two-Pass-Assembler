@@ -13,12 +13,13 @@ class TwoPassAssembler:
         self.FILE = FILE
         self.output_path = output_path
         self.symbol_table = {}
+        self.symbol_table_en = {}
         self.start_address = 0 # default if not changed
         self.INST_TABLE_FILE = INST_TABLE_FILE
         self.inst_table = {}
         if not self.load_instructions(self.INST_TABLE_FILE):
             raise ValueError("error loading instruction")
-        self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW", "LITORG", "BASE"]
+        self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW", "LITORG", "BASE", "EQU", "ORG"]
         # adding compatibilty with literals
         self.literal_table = {} # {"name": address or 0}
 
@@ -61,13 +62,17 @@ class TwoPassAssembler:
 
             # check if mnemonic exist
             if not parts['mnemonic']:
-                raise SyntaxError('Memocis must be provided')
+                raise SyntaxError('Mnemonics must be provided')
 
             # check if a label exist save it to the symbol table
             if parts['label']:
                 if parts['label'] in self.symbol_table:
                     raise ValueError('Duplicate Label: ', parts['label'])
-                self.symbol_table[parts['label']] = self.current_address
+
+                if parts['mnemonic'] == 'EQU':
+                    self.current_label = parts['label']
+                else:
+                    self.symbol_table[parts['label']] = self.current_address
 
             if "operands" not in parts:
                 parts["operands"] = [""]
@@ -96,7 +101,8 @@ class TwoPassAssembler:
         symbol_table = open(self.FILE + ".symbols", 'w')
         for symbol, address in self.symbol_table.items():
             # print(symbol, address)
-            symbol_table.write("{}: {}\n".format(symbol, address))
+            type = 'A' if symbol in self.symbol_table_en and not self.symbol_table_en[symbol] else 'R'
+            symbol_table.write("{}: {} {}\n".format(symbol, address, type))
 
         symbol_table.close()
         f.close()
@@ -282,6 +288,68 @@ class TwoPassAssembler:
 
     def end(self, operands):
         return self.litorg(operands)
+
+    def output_error(self, mssg, extra_arg):
+        f = open(self.FILE + "_error", 'a')
+        f.write(mssg + " : ")
+        f.write(extra_arg + "\n")
+        f.close()
+        #exit()
+
+    def org(self, operands):
+        self.current_address = operands[0]
+        return 0
+
+    # Symbols Part
+    def equ(self, operands):
+        self.evaluate_expression(operands[0])
+        return 0
+
+    def check_if_forward(self, label):
+        if label not in self.symbol_table:
+            self.output_error("Forward referencing is not allowed", label)
+            #exit()
+
+    def evaluate_expression(self, expression):
+        """
+        Matches the expression to a set of regular expressions and returns
+        the evaluation of the expression along with 0:relative or 1:absolute
+        :param expression:
+        :return:
+        """
+        if re.fullmatch('^\*$', expression):
+            self.symbol_table[self.current_label] = self.current_address
+            self.symbol_table_en[self.current_label] = 1
+            return
+
+        if expression.count('*') or expression.count("/"):
+            self.output_error("Invalid Expression", expression)
+            exit()
+
+
+        if re.fullmatch('^[0-9]+$', expression):
+            self.symbol_table[self.current_label] = int(expression)
+            self.symbol_table_en[self.current_label] = 0
+
+        m = re.findall('[a-zA-z]+', expression)
+        # if one label is used in EQU
+        if len(m) == 1:
+            self.check_if_forward(m[0])
+            self.symbol_table_en[self.current_label] = 0
+            self.symbol_table[self.current_label] = self.symbol_table[expression]
+        elif len(m) > 1:
+            map(self.check_if_forward, m)
+            if len(m) % 2 == 0 and expression.count('-') == len(m) // 2:
+                self.symbol_table_en[self.current_label] = 0
+            elif len(m) > 2 and (len(m) - 1) % 2 == 0 and expression.count('-') == (len(m) - 1) // 2:
+                self.symbol_table_en[self.current_label] = 1
+            else:
+                self.output_error("Invalid Expression not Relative nor Absolute", expression)
+            for sym in m:
+                expression = str(expression).replace(sym, str(int(self.symbol_table[sym], 16)))
+            self.symbol_table[self.current_label] = format(eval(expression), '04x')
+
+
 
 if __name__ == '__main__':
     # import doctest
