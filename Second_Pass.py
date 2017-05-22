@@ -8,12 +8,13 @@ class Second_Pass:
     }
     # instruction_set = None
     # def symbol_table
-    def __init__(self, lines, instruction_set, symbol_table, filename="output"):
+    def __init__(self, lines, instruction_set, symbol_table,symbol_table_en filename="output"):
         """ Takes an array of Assembly_Line"""
         self.lines = lines
         self.instruction_set = instruction_set
         self.symbol_table = symbol_table
         self.filename = filename
+        self.symbol_table_en = symbol_table_en
 
     def second_pass(self):
         object_codes = []
@@ -86,8 +87,13 @@ class Second_Pass:
                             ht.add_modification_record(format(int(line.current_address,16) + 1,'02X'),5)
                         else:
                             # format 3
-                            if is_immediate and operand[0].isdigit():
-                                address_in_obj_code = operand #self.symbol_table[operand] if not operand[0].isdigit() else operand
+                            if is_immediate and (operand[0].isdigit() or operand in self.symbol_table_en):
+                                if  operand[0].isdigit():
+                                    address_in_obj_code = operand
+                                else:
+                                    address_in_obj_code =  self.symbol_table[operand]
+                                    if self.symbol_table_en[operand] == 0: # if it's relative we add a modif record
+                                        ht.add_modification_record(format(int(line.current_address,16) + 1,'02X'),5)
                             else:
                                 hex_target_address = None
                                 operand_abs_address = self.symbol_table[operand]
