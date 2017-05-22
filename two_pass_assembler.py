@@ -14,12 +14,16 @@ class TwoPassAssembler:
         self.output_path = output_path
         self.symbol_table = {}
         self.symbol_table_en = {}
+        self.control_section = 0 # default control section
+        self.external_refs = [] # a list of external refs for each CSECT
+        self.external_defs = []
         self.start_address = 0 # default if not changed
         self.INST_TABLE_FILE = INST_TABLE_FILE
         self.inst_table = {}
         if not self.load_instructions(self.INST_TABLE_FILE):
             raise ValueError("error loading instruction")
-        self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW", "LITORG", "BASE", "EQU", "ORG"]
+        self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW", "LITORG", "BASE",
+                                "EQU", "ORG", "CSECT", "EXTDEF", "EXTREF"]
         # adding compatibilty with literals
         self.literal_table = {} # {"name": address or 0}
 
@@ -307,6 +311,9 @@ class TwoPassAssembler:
 
     def check_if_forward(self, label):
         if label not in self.symbol_table:
+            for sec in self.external_refs:
+                if label in sec:
+                    return
             self.output_error("Forward referencing is not allowed", label)
             #exit()
 
@@ -346,10 +353,23 @@ class TwoPassAssembler:
             else:
                 self.output_error("Invalid Expression not Relative nor Absolute", expression)
             for sym in m:
-                expression = str(expression).replace(sym, str(int(self.symbol_table[sym], 16)))
+                sym_value = str(int(self.symbol_table[sym], 16)) if sym in self.symbol_table else 0x0000
+                expression = str(expression).replace(sym, sym_value)
             self.symbol_table[self.current_label] = format(eval(expression), '04x')
 
+    def csect(self, operands):
+        self.control_section += 1
+        return 0
 
+    def extdef(self, operands):
+        self.external_defs.insert(self.control_section, operands)
+        # self.external_defs[self.control_section] = operands
+        return 0
+
+    def extref(self, operands):
+        self.external_refs.insert(self.control_section, operands)
+        # self.external_refs[self.control_section] = operands
+        return 0
 
 if __name__ == '__main__':
     # import doctest

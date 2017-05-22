@@ -16,7 +16,7 @@ def main():
     sp.second_pass()
 
 def sym_test():
-    file_name = "../Project_2_sic_xe_programs/equ_error"
+    file_name = "../Project_2_sic_xe_programs/control_section"
     output_file_name = sys.argv[2] if len(sys.argv) > 2 else file_name
     fp = two_pass_assembler.TwoPassAssembler(file_name, output_file_name)
     lines = fp.first_pass()
