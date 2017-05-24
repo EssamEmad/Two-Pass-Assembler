@@ -3,6 +3,7 @@ import math
 import sys, os
 sys.path.append(os.path.realpath(__file__))
 from Assembly_Line import Assembly_Line
+import Second_Pass as sp
 
 class TwoPassAssembler:
     """
@@ -20,6 +21,7 @@ class TwoPassAssembler:
         self.start_address = 0 # default if not changed
         self.INST_TABLE_FILE = INST_TABLE_FILE
         self.inst_table = {}
+        self.global_variables = {} #EXTDEF Variables
         if not self.load_instructions(self.INST_TABLE_FILE):
             raise ValueError("error loading instruction")
         self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW", "LITORG", "BASE",
@@ -66,8 +68,22 @@ class TwoPassAssembler:
 
             # check if mnemonic exist
             if not parts['mnemonic']:
-                raise SyntaxError('Mnemonics must be provided')
-
+                raise SyntaxError('Mnemonics must be provided ' + line)
+            if parts['mnemonic'] == 'CSECT':
+                # # a new control section is defined
+                # s = sp.Second_Pass(first_pass_output, self.inst_table, self.symbol_table,self.symbol_table_en, self.global_variables)
+                # s.second_pass()
+                # first_pass_output = []
+                # return self.first_pass()
+                self.current_address = '0'
+                self.symbol_table[parts['label']] = '0'
+                continue
+            elif parts['mnemonic'] == 'EXTDEF':
+                for var in parts['operands']:
+                    self.global_variables[var] = var
+                continue
+            elif parts['mnemonic'] == 'EXTREF':
+                continue
             # check if a label exist save it to the symbol table
             if parts['label']:
                 if parts['label'] in self.symbol_table:
@@ -144,7 +160,7 @@ class TwoPassAssembler:
                 current += t
             else:
                 if len(current) == 0 and current_index != 2:
-                    raise SyntaxError("Unexpected Start of instruction: " + t)
+                    raise SyntaxError("Unexpected Start of instruction: " + t + line)
                 else:
                     current += t
 
@@ -374,6 +390,7 @@ class TwoPassAssembler:
 if __name__ == '__main__':
     # import doctest
     # doctest.testmod()
-    FirstPass = TwoPassAssembler('tests/CODE.txt', 'tests/CODE-result.txt')
-    FirstPass.first_pass()
-
+    FirstPass = TwoPassAssembler('control_section', 'tests/CODE-result.txt')
+    l = FirstPass.first_pass()
+    s = sp.Second_Pass(l, FirstPass.inst_table, FirstPass.symbol_table,FirstPass.symbol_table_en, FirstPass.global_variables)
+    s.second_pass()

@@ -8,13 +8,14 @@ class Second_Pass:
     }
     # instruction_set = None
     # def symbol_table
-    def __init__(self, lines, instruction_set, symbol_table,symbol_table_en filename="output"):
+    def __init__(self, lines, instruction_set, symbol_table,symbol_table_en, global_variables, filename="output"):
         """ Takes an array of Assembly_Line"""
         self.lines = lines
         self.instruction_set = instruction_set
         self.symbol_table = symbol_table
         self.filename = filename
         self.symbol_table_en = symbol_table_en
+        self.global_variables  = global_variables
 
     def second_pass(self):
         object_codes = []
@@ -24,7 +25,7 @@ class Second_Pass:
         for index,line in enumerate(self.lines):
             # line = self.lines[i]
             # print('line with instruction:{} has address:{}'.format(line.mnemonic, line.current_address))
-            if line.mnemonic == 'START':
+            if line.mnemonic == 'START' or line.mnemonic == 'EXTDEF' or line.mnemonic == 'EXTREF' or line.mnemonic == 'CSECT':
                 continue
             elif line.mnemonic == 'END':
                 ht.output_records(line.operands[0], self.filename + ".obj", line.current_address[-2:])
@@ -58,7 +59,7 @@ class Second_Pass:
 
                 else:
                     #format 3 and 4
-                    # print('operand is:{}\n'.format(operand))
+                    print('operand is:{}, mnemnoic is:{}, operands are:{}\n'.format(operand, line.mnemonic, line.operands))
                     is_immediate = operand[0] == '#'
                     is_indirect = operand[0] == '@'
                     n = i = x = b = p = e = 0
@@ -81,9 +82,10 @@ class Second_Pass:
                         # if format 4 we put the operand as is
                         address_in_obj_code = None
                         if line.mnemonic[0] == '+':
-                            if len(operand) > 5:
+                            value = self.symbol_table[operand] if not operand[0].isdigit() else operand
+                            if len(value) > 5:
                                 raise SyntaxError('Operand is too big')
-                            address_in_obj_code =  self.symbol_table[operand] if not operand[0].isdigit() else operand
+                            address_in_obj_code =  value
                             ht.add_modification_record(format(int(line.current_address,16) + 1,'02X'),5)
                         else:
                             # format 3
