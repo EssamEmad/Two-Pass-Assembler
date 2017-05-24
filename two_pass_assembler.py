@@ -390,7 +390,7 @@ class TwoPassAssembler:
 if __name__ == '__main__':
     # import doctest
     # doctest.testmod()
-    FirstPass = TwoPassAssembler('control_section', 'tests/CODE-result.txt')
+    FirstPass = TwoPassAssembler('equ', 'tests/CODE-result.txt')
     l = FirstPass.first_pass()
     s = sp.Second_Pass(l, FirstPass.inst_table, FirstPass.symbol_table,FirstPass.symbol_table_en, FirstPass.external_refs, FirstPass.external_defs)
     s.second_pass()

@@ -3,7 +3,7 @@ from hte import HTMEGenerator
 class Second_Pass:
 
     registers = {
-    'A':'0', 'X':'10', 'L':'02','B': '03',
+    'A':'0', 'X':'10', 'L':'20','B': '03',
     'S':'04','T': '05', 'F':'06', 'PC':'08', 'SW':'09'
     }
     # instruction_set = None
@@ -25,6 +25,10 @@ class Second_Pass:
         startLine = self.lines[0]
         ht = HTMEGenerator(startLine.label,startLine.operands[0],'00000')
         for index,line in enumerate(self.lines):
+            inst = False
+            if line.mnemonic == 'SUB' and line.operands[0] == '#48':
+                print("fucking foudn it mate \n\n")
+                inst = True
             # line = self.lines[i]
             # print('line with instruction:{} has address:{}'.format(line.mnemonic, line.current_address))
             if line.mnemonic == 'START':
@@ -54,8 +58,8 @@ class Second_Pass:
                 ht.add_text_record(self.get_value(line.operands[0]) + ' ')
             elif line.mnemonic == 'RSUB':
                 #special case
-                object_codes.append('4C0000 ')
-                ht.add_text_record(' 4c0000 ')
+                object_codes.append('4f0000 ')
+                ht.add_text_record(' 4f0000 ')
             else:
                 opcode_format = self.get_opcode(line.mnemonic)
                 is_indexed = len(line.operands) > 1
@@ -77,6 +81,8 @@ class Second_Pass:
 
                 else:
                     #format 3 and 4
+                    if inst:
+                        print("Reached format 3 and 4")
                     # print('operand is:{}, mnemnoic is:{}, operands are:{}\n'.format(operand, line.mnemonic, line.operands))
                     is_immediate = operand[0] == '#'
                     is_indirect = operand[0] == '@'
@@ -98,71 +104,80 @@ class Second_Pass:
                         # ex #13242
                         # This is an exceptional case, where the operand is passed as is
                         b = p = 0
-                    else:
-                        # if format 4 we put the operand as is
-                        address_in_obj_code = None
-                        if line.mnemonic[0] == '+':
-                            isFormatFour = True
-                            e = 1
+                        if inst:
+                            print("Reached fucking special case")
+                    # if format 4 we put the operand as is
+                    address_in_obj_code = None
+                    if line.mnemonic[0] == '+':
+                        isFormatFour = True
+                        e = 1
 
-                            value = self.symbol_table[operand] if not operand[0].isdigit() else operand
-                            if len(value) > 5:
-                                raise SyntaxError('Operand is too big')
-                            address_in_obj_code =  value
-                            if operand in local_external_referenes:
-                                address_in_obj_code = '00000'
-                            ht.add_modification_record(format(int(line.current_address,16) + 1,'02X'),5)
-                        else:
-                            # format 3
-                            if is_immediate and (operand[0].isdigit() or operand in self.symbol_table_en):
-                                if  operand[0].isdigit():
-                                    address_in_obj_code = operand
-                                else:
-                                    address_in_obj_code =  self.symbol_table[operand]
-                                    if self.symbol_table_en[operand] == 0: # if it's relative we add a modif record
-                                        ht.add_modification_record(format(int(line.current_address,16) + 1,'02X'),5)
+                        value = self.symbol_table[operand] if not operand[0].isdigit() else operand
+                        if len(value) > 5:
+                            raise SyntaxError('Operand is too big')
+                        address_in_obj_code =  value
+                        if operand in local_external_referenes:
+                            address_in_obj_code = '00000'
+                        ht.add_modification_record(format(int(line.current_address,16) + 1,'02X'),5)
+                    else:
+                        # format 3
+                        if inst:
+                            print("Reached format 3 122")
+                        if is_immediate and (operand[0].isdigit() or operand in self.symbol_table_en):
+                            if  operand[0].isdigit():
+                                address_in_obj_code = self.getTwosHex(int(operand,10))
+                                print(" In instruction: {} the operand is:{} with hex:{}".format(line.mnemonic, operand,address_in_obj_code))
+
                             else:
-                                hex_target_address = None
-                                operand_abs_address = self.symbol_table[operand]
-                                if operand_abs_address is None:
-                                    raise SyntaxError('Cant find operand:{} in symbol table'.format(operand))
-                                #first try PC relative
-                                # print('{}\n'.format(i))
-                                pc = self.lines[index + 1].current_address
-                                TA = int(operand_abs_address,16) - int(pc,16)
-                                # print('index:{} pc hex is:{}, pc is:{} TA is:{}\n'.format(index,pc,int(pc,16),TA))
-                                maximum_offset = 2048 #2^11
-                                if TA <= maximum_offset - 1 and TA > -1 * maximum_offset:
-                                    # we can make it PC relative
-                                    address_in_obj_code = self.getTwosHex(TA)
-                                    p = 1
+                                address_in_obj_code =  self.symbol_table[operand]
+                                if self.symbol_table_en[operand] == 0: # if it's relative we add a modif record
+                                    ht.add_modification_record(format(int(line.current_address,16) + 1,'02X'),5)
+                        else:
+                            hex_target_address = None
+                            operand_abs_address = self.symbol_table[operand]
+                            if operand_abs_address is None:
+                                raise SyntaxError('Cant find operand:{} in symbol table'.format(operand))
+                            #first try PC relative
+                            # print('{}\n'.format(i))
+                            pc = self.lines[index + 1].current_address
+                            TA = int(operand_abs_address,16) - int(pc,16)
+                            # print('index:{} pc hex is:{}, pc is:{} TA is:{}\n'.format(index,pc,int(pc,16),TA))
+                            maximum_offset = 2048 #2^11
+                            if TA <= maximum_offset - 1 and TA > -1 * maximum_offset:
+                                # we can make it PC relative
+                                address_in_obj_code = self.getTwosHex(TA)
+                                p = 1
+                            else:
+                                #use base relative
+                                if base is None:
+                                    raise SyntaxError('Need to set BASE because PC is out of bounds')
                                 else:
-                                    #use base relative
-                                    if base is None:
-                                        raise SyntaxError('Need to set BASE because PC is out of bounds')
+                                    TA = int(operand_abs_address,16) - int(base,16)
+                                    if TA <= maximum_offset - 1 and TA > -1 * maximum_offset:
+                                        #we use base
+                                        address_in_obj_code = self.getTwosHex(TA)
+                                        b = 1
                                     else:
-                                        TA = int(operand_abs_address,16) - int(base,16)
-                                        if TA <= maximum_offset - 1 and TA > -1 * maximum_offset:
-                                            #we use base
-                                            address_in_obj_code = self.getTwosHex(TA)
-                                            b = 1
-                                        else:
-                                            raise SyntaxError("The index is out of range: \n line:{} with instruction: {}  target address is:{}".format(line.current_address, line.mnemonic,operand_abs_address))
-                        mnemonic_bin = format(int(opcode,16),'08b')
-                        mnemonic_bin = mnemonic_bin[0:len(mnemonic_bin) - 2] #remove last 2 bits
-                        obj_code_bin = mnemonic_bin + str(n) + str(i) + str(x) + str(b) + str(p) + str(e)
-                        #Align displacement with zeros
-                        while line.mnemonic[0] == '+' and len(address_in_obj_code) < 5:
-                            address_in_obj_code = '0' + address_in_obj_code
-                        #for format 3:
-                        while len(address_in_obj_code) < 3:
-                            address_in_obj_code = '0' + address_in_obj_code
-                        if operand in local_external_referenes and not isFormatFour:
-                            address_in_obj_code = '000'
-                        full_obj_code = format(int(obj_code_bin, 2),'03X') + address_in_obj_code + ' '
+                                        raise SyntaxError("The index is out of range: \n line:{} with instruction: {}  target address is:{}".format(line.current_address, line.mnemonic,operand_abs_address))
+                    if inst:
+                        print("Reached after format 3 158")
+                    mnemonic_bin = format(int(opcode,16),'08b')
+                    mnemonic_bin = mnemonic_bin[0:len(mnemonic_bin) - 2] #remove last 2 bits
+                    obj_code_bin = mnemonic_bin + str(n) + str(i) + str(x) + str(b) + str(p) + str(e)
+                    #Align displacement with zeros
+                    while line.mnemonic[0] == '+' and len(address_in_obj_code) < 5:
+                        address_in_obj_code = '0' + address_in_obj_code
+                    #for format 3:
+                    while len(address_in_obj_code) < 3:
+                        address_in_obj_code = '0' + address_in_obj_code
+                    if operand in local_external_referenes and not isFormatFour:
+                        address_in_obj_code = '000'
+                    full_obj_code = format(int(obj_code_bin, 2),'03X') + address_in_obj_code + ' '
+                    if inst:
                         print("Instruction:{}  pc:{} opcode:{} Mnemonic in binary:{} Object_code_bin:{} hex:{}, full_object_code: {} \n".format(line.mnemonic, line.current_address, opcode,mnemonic_bin,obj_code_bin,format(int(obj_code_bin, 2),'02X'),full_obj_code))
-                        object_codes.append(str(full_obj_code))
-                        ht.add_text_record(str(full_obj_code))
+                    object_codes.append(str(full_obj_code))
+                    ht.add_text_record(str(full_obj_code))
+
         return object_codes
     def getTwosHex(self,int_address):
         twos = (abs(int_address) ^ 0xFFF) + 1 if int_address < 0 else int_address
