@@ -52,7 +52,7 @@ class TwoPassAssembler:
         """
         first_pass_output = [] #array of assembly_line objects
         f = open(self.FILE, "r")
-        temp_file = open(self.FILE +'.temp', 'w')
+        temp_file = open(self.FILE +'temp.txt', 'w')
 
         self.current_address = self.start_address = self.get_start_address()
         # current_address = self.start_address
@@ -68,15 +68,15 @@ class TwoPassAssembler:
             # check if mnemonic exist
             if not parts['mnemonic']:
                 raise SyntaxError('Mnemonics must be provided ' + line)
-            if parts['mnemonic'] == 'CSECT':
+            # if parts['mnemonic'] == 'CSECT':
                 # # a new control section is defined
                 # s = sp.Second_Pass(first_pass_output, self.inst_table, self.symbol_table,self.symbol_table_en, self.global_variables)
                 # s.second_pass()
                 # first_pass_output = []
                 # return self.first_pass()
-                self.current_address = '0'
-                # self.symbol_table[parts['label']] = '0'
-            elif parts['mnemonic'] == 'EXTDEF':
+                # self.current_address = '0'
+                # self.symbol_table[parts['label']] = self.current_address
+            if parts['mnemonic'] == 'EXTDEF':
                 for var in parts['operands']:
                     self.external_defs[var] = var
                 continue
@@ -115,6 +115,8 @@ class TwoPassAssembler:
             current_address_int = int(self.current_address, 16)
             current_address_int += current_inst_size
             self.current_address = format(current_address_int, '04x')
+            if parts['mnemonic'] == 'CSECT':
+                self.current_address = '0'
             # self.current_address += self.get_size(parts['mnemonic'], parts['operands'])
 
         symbol_table = open(self.FILE + ".symbols", 'w')
@@ -168,7 +170,6 @@ class TwoPassAssembler:
 
         if "operands" in parts:
             parts['operands'] = list(re.split(',', parts['operands']))
-
         return parts
 
     @staticmethod
@@ -376,15 +377,15 @@ class TwoPassAssembler:
         self.control_section += 1
         return 0
 
-    # def extdef(self, operands):
-    #     self.external_defs.insert(self.control_section, operands)
-    #     # self.external_defs[self.control_section] = operands
-    #     return 0
-    #
-    # def extref(self, operands):
-    #     self.external_refs.insert(self.control_section, operands)
-    #     # self.external_refs[self.control_section] = operands
-    #     return 0
+    def extdef(self, operands):
+        # self.external_defs.insert(self.control_section, operands)
+        # self.external_defs[self.control_section] = operands
+        return 0
+
+    def extref(self, operands):
+        # self.external_refs.insert(self.control_section, operands)
+        # self.external_refs[self.control_section] = operands
+        return 0
 
 if __name__ == '__main__':
     # import doctest

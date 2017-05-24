@@ -106,11 +106,10 @@ class HTMEGenerator:
         size = hex(self.text_record_staging[0])
         size_to_write = format(self.text_record_staging[0], '02x')
 
-        text_record = "{}{}{}{}".format('T', self.starting_address_hex, size_to_write, obj_codes)
+        text_record = "{} {} {} {} ".format('T ', self.starting_address_hex, size_to_write, obj_codes)
         self.text_records_pool.append(text_record)
 
         # update the starting address to reflect the size of the last text record
-        print("Address is:" + self.starting_address_hex )
 
         starting_address_int = int(self.starting_address_hex, 16)
         starting_address_int += int(size, 16)
@@ -131,7 +130,7 @@ class HTMEGenerator:
         """
         start_address = format(int(start_address, 16), '06x')
         no_of_half_bytes = format(no_of_half_bytes, '02x')
-        self.mod_records.append("{}{}{}".format('M', start_address, no_of_half_bytes))
+        self.mod_records.append("{} {} {}".format('M', start_address, no_of_half_bytes))
 
     def add_reference_record(self, names):
         n = ''
@@ -153,13 +152,13 @@ class HTMEGenerator:
         :return: None
         """
         f = open(file_name, 'a')
-        end_record = "E{}".format(address)
+        end_record = "E {}".format(address)
 
         # check if there's any records in the pool
         if self.text_record_staging[0]:
             self.generate_and_reset()
 
-        self.head_record = "{}{}{}{}".format('H', self.name[:5], size_in_bytes, self.starting_address)
+        self.head_record = "\n{} {} {} {}".format('H', self.name[:5], size_in_bytes, self.starting_address)
         print("HEAD RECORD:{} name:{} size:{}".format(self.head_record, self.name, size_in_bytes))
         f.write(self.head_record)
         f.write("\n")
