@@ -3,7 +3,7 @@ from hte import HTMEGenerator
 class Second_Pass:
 
     registers = {
-    'A':'00', 'X':'01', 'L':'02','B': '03',
+    'A':'00', 'X':'10', 'L':'02','B': '03',
     'S':'04','T': '05', 'F':'06', 'PC':'08', 'SW':'09'
     }
     # instruction_set = None
@@ -21,14 +21,20 @@ class Second_Pass:
         object_codes = []
         base = None # this is used for base relative addressing mode
         startLine = self.lines[0]
-        ht = HTMEGenerator(startLine.label,startLine.operands[0],'0')
+        ht = HTMEGenerator(startLine.label,startLine.operands[0],'00000')
         for index,line in enumerate(self.lines):
             # line = self.lines[i]
             # print('line with instruction:{} has address:{}'.format(line.mnemonic, line.current_address))
-            if line.mnemonic == 'START' or line.mnemonic == 'EXTDEF' or line.mnemonic == 'EXTREF' or line.mnemonic == 'CSECT':
+            if line.mnemonic == 'START'  or line.mnemonic == 'EXTREF':
+                continue
+            elif line.mnemonic == 'CSECT':
+                ht.output_records('0000',self.filename + ".txt", line.current_address[-2:] )
+                ht = HTMEGenerator(line.label,'0','0')
+                continue
+            elif line.mnemonic == 'EXTDEF':
                 continue
             elif line.mnemonic == 'END':
-                ht.output_records(line.operands[0], self.filename + ".obj", line.current_address[-2:])
+                ht.output_records(line.operands[0], self.filename + ".txt", line.current_address[-2:])
                 break # This guarrentees that we can calculate
                 #the PC for every instruction by checking the next line (No out of bounds)
             elif line.mnemonic == 'BASE':
@@ -37,7 +43,6 @@ class Second_Pass:
                 dummy = 0
             elif line.mnemonic == 'BYTE' or line.mnemonic == 'WORD':
                 object_codes.append(line.operands[0])
-                # ht.add_text_record(line.operands[0])
                 print(operand[0], self.get_value((operand[0])))
                 ht.add_text_record(self.get_value(line.operands[0]))
             elif line.mnemonic == 'RSUB':

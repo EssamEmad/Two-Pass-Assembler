@@ -110,6 +110,8 @@ class HTMEGenerator:
         self.text_records_pool.append(text_record)
 
         # update the starting address to reflect the size of the last text record
+        print("Address is:" + self.starting_address_hex )
+
         starting_address_int = int(self.starting_address_hex, 16)
         starting_address_int += int(size, 16)
         self.starting_address_hex = format(starting_address_int, '06x')
@@ -141,7 +143,7 @@ class HTMEGenerator:
         :param file_name: dir or file name
         :return: None
         """
-        f = open(file_name, 'w')
+        f = open(file_name, 'a')
         end_record = "E{}".format(address)
 
         # check if there's any records in the pool
@@ -149,6 +151,7 @@ class HTMEGenerator:
             self.generate_and_reset()
 
         self.head_record = "{}{}{}{}".format('H', self.name[:5], size_in_bytes, self.starting_address)
+        print("HEAD RECORD:{} name:{} size:{}".format(self.head_record, self.name, size_in_bytes))
         f.write(self.head_record)
         f.write("\n")
 

@@ -76,8 +76,7 @@ class TwoPassAssembler:
                 # first_pass_output = []
                 # return self.first_pass()
                 self.current_address = '0'
-                self.symbol_table[parts['label']] = '0'
-                continue
+                # self.symbol_table[parts['label']] = '0'
             elif parts['mnemonic'] == 'EXTDEF':
                 for var in parts['operands']:
                     self.global_variables[var] = var
@@ -87,7 +86,7 @@ class TwoPassAssembler:
             # check if a label exist save it to the symbol table
             if parts['label']:
                 if parts['label'] in self.symbol_table:
-                    raise ValueError('Duplicate Label: ', parts['label'])
+                    raise ValueError('Duplicate Label: ', parts['label'] + parts['mnemonic'])
 
                 if parts['mnemonic'] == 'EQU':
                     self.current_label = parts['label']
