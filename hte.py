@@ -133,6 +133,15 @@ class HTMEGenerator:
         no_of_half_bytes = format(no_of_half_bytes, '02x')
         self.mod_records.append("{}{}{}".format('M', start_address, no_of_half_bytes))
 
+    def add_reference_record(self, names):
+        n = ''
+        for nam in names:
+            n += nam
+            n += ' '
+        self.mod_records.append("R {}".format(n))
+    def add_define_record(self,name, address):
+        self.mod_records.append("{} {} {}".format('D', name, address))
+
     def output_records(self, address, file_name, size_in_bytes):
         """
         output the htme records to the file given by file_name

@@ -16,16 +16,15 @@ class TwoPassAssembler:
         self.symbol_table = {}
         self.symbol_table_en = {}
         self.control_section = 0 # default control section
-        self.external_refs = [] # a list of external refs for each CSECT
-        self.external_defs = []
+        self.external_refs = {} # a list of external refs for each CSECT
+        self.external_defs = {}
         self.start_address = 0 # default if not changed
         self.INST_TABLE_FILE = INST_TABLE_FILE
         self.inst_table = {}
-        self.global_variables = {} #EXTDEF Variables
         if not self.load_instructions(self.INST_TABLE_FILE):
             raise ValueError("error loading instruction")
         self.directive_table = ["START", "END", "BYTE", "WORD", "RESB", "RESW", "LITORG", "BASE",
-                                "EQU", "ORG", "CSECT", "EXTDEF", "EXTREF"]
+                                "EQU", "ORG", "CSECT", "EXTDEF"]
         # adding compatibilty with literals
         self.literal_table = {} # {"name": address or 0}
 
@@ -79,10 +78,11 @@ class TwoPassAssembler:
                 # self.symbol_table[parts['label']] = '0'
             elif parts['mnemonic'] == 'EXTDEF':
                 for var in parts['operands']:
-                    self.global_variables[var] = var
+                    self.external_defs[var] = var
                 continue
             elif parts['mnemonic'] == 'EXTREF':
-                continue
+                for var in parts['operands']:
+                    self.external_refs[var] = var
             # check if a label exist save it to the symbol table
             if parts['label']:
                 if parts['label'] in self.symbol_table:
@@ -376,20 +376,20 @@ class TwoPassAssembler:
         self.control_section += 1
         return 0
 
-    def extdef(self, operands):
-        self.external_defs.insert(self.control_section, operands)
-        # self.external_defs[self.control_section] = operands
-        return 0
-
-    def extref(self, operands):
-        self.external_refs.insert(self.control_section, operands)
-        # self.external_refs[self.control_section] = operands
-        return 0
+    # def extdef(self, operands):
+    #     self.external_defs.insert(self.control_section, operands)
+    #     # self.external_defs[self.control_section] = operands
+    #     return 0
+    #
+    # def extref(self, operands):
+    #     self.external_refs.insert(self.control_section, operands)
+    #     # self.external_refs[self.control_section] = operands
+    #     return 0
 
 if __name__ == '__main__':
     # import doctest
     # doctest.testmod()
     FirstPass = TwoPassAssembler('control_section', 'tests/CODE-result.txt')
     l = FirstPass.first_pass()
-    s = sp.Second_Pass(l, FirstPass.inst_table, FirstPass.symbol_table,FirstPass.symbol_table_en, FirstPass.global_variables)
+    s = sp.Second_Pass(l, FirstPass.inst_table, FirstPass.symbol_table,FirstPass.symbol_table_en, FirstPass.external_refs, FirstPass.external_defs)
     s.second_pass()

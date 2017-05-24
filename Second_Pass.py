@@ -8,14 +8,15 @@ class Second_Pass:
     }
     # instruction_set = None
     # def symbol_table
-    def __init__(self, lines, instruction_set, symbol_table,symbol_table_en, global_variables, filename="output"):
+    def __init__(self, lines, instruction_set, symbol_table,symbol_table_en, external_refs, external_defs, filename="output"):
         """ Takes an array of Assembly_Line"""
         self.lines = lines
         self.instruction_set = instruction_set
         self.symbol_table = symbol_table
         self.filename = filename
         self.symbol_table_en = symbol_table_en
-        self.global_variables  = global_variables
+        self.external_refs  = external_refs
+        self.external_defs = external_defs
 
     def second_pass(self):
         object_codes = []
@@ -25,13 +26,14 @@ class Second_Pass:
         for index,line in enumerate(self.lines):
             # line = self.lines[i]
             # print('line with instruction:{} has address:{}'.format(line.mnemonic, line.current_address))
-            if line.mnemonic == 'START'  or line.mnemonic == 'EXTREF':
+            if line.mnemonic == 'START':
                 continue
             elif line.mnemonic == 'CSECT':
                 ht.output_records('0000',self.filename + ".txt", line.current_address[-2:] )
                 ht = HTMEGenerator(line.label,'0','0')
                 continue
-            elif line.mnemonic == 'EXTDEF':
+            elif line.mnemonic == 'EXTREF':
+                ht.add_reference_record(line.operands)
                 continue
             elif line.mnemonic == 'END':
                 ht.output_records(line.operands[0], self.filename + ".txt", line.current_address[-2:])
@@ -40,7 +42,8 @@ class Second_Pass:
             elif line.mnemonic == 'BASE':
                 base = self.symbol_table[line.operands[0]]
             elif line.mnemonic == 'RESW' or line.mnemonic == 'RESB':
-                dummy = 0
+                if line.label in self.external_defs:
+                    ht.add_define_record(line.label, line.current_address)
             elif line.mnemonic == 'BYTE' or line.mnemonic == 'WORD':
                 object_codes.append(line.operands[0])
                 print(operand[0], self.get_value((operand[0])))
